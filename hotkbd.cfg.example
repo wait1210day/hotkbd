@@ -1,0 +1,56 @@
+[Language: ZH_CN]
+
+hotkbd 的配置文件由字段和参数组成，如下是通用语法：
+
+    [字段] [参数1] [参数2] ... [参数n]
+
+“字段” 决定该行配置的实现对象，hotkbd 支持如下字段。
+
+* bind 字段
+    该字段告诉 hotkbd 被映射的按键和映射的目标按键
+    * 参数列表：
+        bind <trigger> as <target>
+        bind <target> to <trigger>
+    * 参数 3：as 和 to 的区别
+        当使用 “key1 as key2” 这种语法时，hotkbd 捕捉 key1 的按键事件，
+        并按下 key2 键。此时 key1 是被映射的按键，key2 是映射的目标按键。
+        当使用 “key1 to key2” 这种语法时，hotkbd 会采取与 as 相反的行为。
+
+* option 字段
+    该字段控制 hotkbd 的运行时参数，以及一些功能的开关。
+    * 参数列表：
+        option runas [application/daemon]
+        option quiet [true/false]
+        option monitor-file <path>
+        option stdout-bridge <path>
+        option continuous-trigger [true/false]
+    * 参数说明：
+        * runas 参数控制 hotkbd 的运行方式，application 表示在前台运行，
+          daemon 表示以守护进程身份在后台运行。
+        * quiet 参数控制 hotkbd 是否在 stdout 输出内容。
+        * monitor-file 控制通过 monitor 字段注册的监听事件的日志文件
+        * stdout-bridge 参数指定当以 daemon 运行时 stdout 的重定向文件
+        * continuous-trigger 参数控制是否限制 “连续触发” 操作
+          在配置中，可能会出现这样的情况：
+            bind F1 as F2
+            bind F2 as F3
+          这导致 F1 被触发时触发 F2 进而触发 F3 一共引起了 3 次触发，如果出现
+          这种配置：
+            bind F1 as F2
+            bind F2 as F3
+            bind F3 as F1
+          毫无疑问，程序进入死循环。hotkbd 称以上两种情况为 “continuous-trigger (连续触发)”。
+          continuous-trigger 参数的引入，可以抑制这种情况的出现。当 continuous-trigger 为
+          false 时，hotkbd 将记录 “配置上下文” 中的每一次触发事件，并保存到缓冲区，下一次事件发
+          生时就会触发 hotkbd 的 “events context backtrace (事件上下文回溯追踪)” 功能，查找
+          符合条件的已发生事件，并针对连续触发现象进行拒绝。
+
+* monitor 字段：
+    该字段枚举了 hotkbd 的监听目标。
+    * 参数列表：
+      monitor <trigger>
+
+* end 字段
+    该字段表明配置文件已达到末尾。
+    * 参数列表：  
+      end (无参数)
